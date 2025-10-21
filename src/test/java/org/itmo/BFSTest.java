@@ -16,6 +16,10 @@ public class BFSTest {
     public void bfsTest() throws IOException {
         int[] sizes = new int[]{10, 100, 1000, 10_000, 10_000, 50_000, 100_000, 1_000_000, 2_000_000};
         int[] connections = new int[]{50, 500, 5000, 50_000, 100_000, 1_000_000, 1_000_000, 10_000_000, 10_000_000};
+        // int[] sizes = new int[]{10, 100};
+        // int[] connections = new int[]{50, 500};
+        // int[] parallelisms = new int[]{2, 4, 8, 16};
+        int[] parallelisms = new int[]{2, 4};
         Random r = new Random(42);
         try (FileWriter fw = new FileWriter("tmp/results.txt")) {
             for (int i = 0; i < sizes.length; i++) {
@@ -24,10 +28,11 @@ public class BFSTest {
                 Graph g = new RandomGraphGenerator().generateGraph(r, sizes[i], connections[i]);
                 System.out.println("Generation completed!\nStarting bfs");
                 long serialTime = executeSerialBfsAndGetTime(g);
-                long parallelTime = executeParallelBfsAndGetTime(g);
                 fw.append("Times for " + sizes[i] + " vertices and " + connections[i] + " connections: ");
                 fw.append("\nSerial: " + serialTime);
-                fw.append("\nParallel: " + parallelTime);
+                for (int par : parallelisms) {
+                    fw.append("\n" + par + " threads: " + executeParallelBfsAndGetTime(g, par));
+                }
                 fw.append("\n--------\n");
             }
             fw.flush();
@@ -42,9 +47,9 @@ public class BFSTest {
         return endTime - startTime;
     }
 
-    private long executeParallelBfsAndGetTime(Graph g) {
+    private long executeParallelBfsAndGetTime(Graph g, int parallelism) {
         long startTime = System.currentTimeMillis();
-        g.parallelBFS(0);
+        g.parallelBFS(0, parallelism);
         long endTime = System.currentTimeMillis();
         return endTime - startTime;
     }
